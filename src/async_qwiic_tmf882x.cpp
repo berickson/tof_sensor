@@ -229,48 +229,37 @@ bool AsyncQwDevTMF882X::setI2CAddress(uint8_t address)
 
 // fix for https://github.com/sparkfun/SparkFun_Qwiic_TMF882X_Arduino_Library/issues/1
 bool AsyncQwDevTMF882X::setI2CAddress_fix(uint8_t address) {
-    // new_addr = (((new_addr&0x7F) <<1) & 0xFE) 
-    // Shifting by one bit 
-    // address = address << 1; // shift by one bit
+    Serial.printf("setting I2C address to 0x%02x\n", address);
+
+    // shift address by one bit 
+    address = ((address&0x75)<<1)&0xfe;
 
     // Change 0x31 GPIO_0 & 0x32 GPIO_1 registers to 0x5 (Output high)
-    Serial.println(1);
     _i2cBus->writeRegisterByte(_i2cAddress, TMF8X2X_COM_GPIO_0, 0x5);
     delay(500);
-    Serial.println(2);
     _i2cBus->writeRegisterByte(_i2cAddress, TMF8X2X_COM_GPIO_1, 0x5);
     delay(500);
-    Serial.println(3);
-
     _i2cBus->writeRegisterByte(_i2cAddress, TMF8X2X_COM_CMD_STAT, TMF8X2X_COM_CMD_STAT__cmd_stat__CMD_LOAD_CONFIG_PAGE_COMMON);
     delay(500);
-    Serial.println(4);
 
     // wait for status to be less than 0x10
-    uint8_t status[] = {0x20, 0}; //assigning a random value first
-    while (status[0] >= 0x10) // Step-2 : Read until a value less than 0x10 is transmitted
+    uint8_t status = 0x20;
+    while (status >= 0x10) // read until a value less than 0x10 is transmitted
     {
-        Serial.println(5);
-        _i2cBus->readRegisterRegion(_i2cAddress, TMF8X2X_COM_CMD_STAT, status, 1);
-        Serial.printf("status: %d\n", (int)status[0]);
+        _i2cBus->readRegisterRegion(_i2cAddress, TMF8X2X_COM_CMD_STAT, &status, 1);
         delay(100);
     }
-    Serial.println(6);
     _i2cBus->writeRegisterByte(_i2cAddress, TMF8X2X_COM_I2C_SLAVE_ADDRESS, address);
     delay(500);
-    Serial.println(7);
-    _i2cBus->writeRegisterByte(_i2cAddress, TMF8X2X_COM_I2C_ADDR_CHANGE, 0xf);
+    _i2cBus->writeRegisterByte(_i2cAddress, TMF8X2X_COM_I2C_ADDR_CHANGE, 0x0);
     delay(500);
-    Serial.println(8);
     _i2cBus->writeRegisterByte(_i2cAddress, TMF8X2X_COM_CMD_STAT, TMF8X2X_COM_CMD_STAT__cmd_stat__CMD_WRITE_CONFIG_PAGE);
     delay(500);
-    Serial.println(9);
     _i2cBus->writeRegisterByte(_i2cAddress, TMF8X2X_COM_CMD_STAT, TMF8X2X_COM_CMD_STAT__cmd_stat__CMD_I2C_SLAVE_ADDRESS);
-    Serial.println(10);
-    Serial.println("10b");
+
+    Serial.printf("I2C address now reads as 0x%02x\n", getI2CAddress());
 
     return true;
-
 }
 
 ///////////////////////////////////////////////////////////////////////

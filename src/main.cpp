@@ -1,4 +1,5 @@
 #include "async_SparkFun_TMF882X_Library.h"
+#include "tof_bin_image.h"
 //#include "async_qwiic_tmf882x.h"
 
 Async_SparkFun_TMF882X tmf882x;
@@ -33,10 +34,12 @@ void setup() {
     tmf882x.getApplicationVersion(application_version, 79);
     Serial.printf("Application version: %s\n", application_version);
  
-    Serial.printf("i2c_address: %u\n",tmf882x.getI2CAddress());
-    tmf882x.setI2CAddress_fix(60);
+    Serial.printf("i2c_address: 0x%02x\n",tmf882x.getI2CAddress());
+    Serial.println("updating firmware");
+    tmf882x.loadFirmware(tof_bin_image, tof_bin_image_length);
+    tmf882x.setI2CAddress_fix(0x40);
+    Serial.println("done");
     while(true) {
-      Serial.println(11);
       delay(1000);
     }
     // Serial.println("set the i2address to 32");
