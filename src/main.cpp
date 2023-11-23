@@ -14,14 +14,23 @@ void measurement_callback(struct tmf882x_msg_meas_results *results) {
     Serial.println();
 }
 
+void set_address() {
+
+    Serial.println("updating firmware");
+    tmf882x.loadFirmware(tof_bin_image, tof_bin_image_length);
+    tmf882x.setI2CAddress_fix(0x40);
+    Serial.println("done");
+    while(true) {
+      delay(1000);
+    }
+
+}
+
 void setup() {
 
     delay(3000);
     Serial.begin(921600);
     Serial.println("");
-
-
-
 
     for(uint8_t address = 1; address < 128; ++address) {
       if(!tmf882x.begin(address)) {
@@ -35,24 +44,13 @@ void setup() {
     Serial.printf("Application version: %s\n", application_version);
  
     Serial.printf("i2c_address: 0x%02x\n",tmf882x.getI2CAddress());
-    Serial.println("updating firmware");
-    tmf882x.loadFirmware(tof_bin_image, tof_bin_image_length);
-    tmf882x.setI2CAddress_fix(0x40);
-    Serial.println("done");
-    while(true) {
-      delay(1000);
-    }
-    // Serial.println("set the i2address to 32");
-    // Serial.printf("i2c_address: %u\n",tmf882x.getI2CAddress());
-
-    while(true) {
-      delay(1);
-    };
+    // set_address();
 
     tmf882x.setMeasurementHandler(measurement_callback);
 
     const int ms_delay_between_samples = 1;
     tmf882x.setSampleDelay(ms_delay_between_samples);
+    Serial.println("starting");
 }
 
 void loop() {
@@ -63,7 +61,7 @@ void loop() {
       tmf882x.async_startMeasuring();
       while(true) {
         tmf882x.async_updateMeasuring();
-        Serial.println("processing between measurements");
+        // Serial.println("processing between measurements");
         delay(1);
       }
     } else {
